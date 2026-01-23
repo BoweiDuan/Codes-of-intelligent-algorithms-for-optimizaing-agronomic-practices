@@ -50,7 +50,7 @@ N_FOLDS = 10
 
 SAVE_DIR = Path("saved_wheat_models_ftt")
 
-DATA_DIR = Path(os.environ.get("DATA_DIR", "data"))
+DATA_DIR = Path(os.environ.get("DATA_DIR", "data_demo"))
 WHEAT_FILE = os.environ.get("WHEAT_FILE", "wheat.xlsx")
 FILE_PATH = DATA_DIR / WHEAT_FILE
 
