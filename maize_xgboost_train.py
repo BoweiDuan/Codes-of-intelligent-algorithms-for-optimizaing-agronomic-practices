@@ -46,7 +46,7 @@ N_FOLDS = 10
 
 SAVE_DIR = Path("saved_maize_models_xgb")
 
-DATA_DIR = Path(os.environ.get("DATA_DIR", "data"))
+DATA_DIR = Path(os.environ.get("DATA_DIR", "data_demo"))
 MAIZE_FILE = os.environ.get("MAIZE_FILE", "maize.xlsx")
 FILE_PATH = DATA_DIR / MAIZE_FILE
 
