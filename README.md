@@ -1,2 +1,6 @@
 # Codes-of-intelligent-algorithms-for-optimizaing-agronomic-practices
 Code and trained model artifacts for farm-level sustainability diagnosis and multi-objective optimization in wheat–maize systems (North China Plain).
+
+This repository contains the code, trained model artifacts, and optimization pipeline for our study on intelligent, field-specific customization of agronomic practices to support sustainability transitions in smallholder wheat–maize systems in the North China Plain (NCP). The repository includes: (i) training scripts for surrogate models (XGBoost for maize and FTTransformer for wheat), (ii) exported model files (XGBoost JSON and FTTransformer weights), (iii) preprocessing utilities (standardizer/scaler), and (iv) single- and multi-objective optimization code used to generate counterfactual management strategies and analyze population-level typology shifts.
+
+Note on data availability. The original farm-household survey dataset is not publicly released due to confidentiality and data-use restrictions. We provide code, model artifacts, and example configuration files to enable end-to-end execution using user-supplied data with the same schema. Where required, we include a small synthetic/demo dataset to illustrate the workflow without disclosing sensitive information.
