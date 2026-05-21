@@ -19,9 +19,9 @@ warnings.filterwarnings("ignore")
 
 
 class CONFIG:
-    N_CORES = multiprocessing.cpu_count()
+    N_CORES = int(os.environ.get('MAIZE_N_CORES', str(min(multiprocessing.cpu_count(), 4))))
     SEED = 123
-    MODEL_SAVE_DIRECTORY = os.environ.get('MAIZE_MODEL_DIR', 'saved_maize_models_xgb')
+    MODEL_SAVE_DIRECTORY = os.environ.get('MAIZE_MODEL_DIR', 'models/saved_maize_models_xgb')
     INPUT_EXCEL_PATH = os.environ.get('MAIZE_OPT_INPUT', 'data_demo/maize.xlsx')
 
     OUTPUT_DIR = os.environ.get('MAIZE_OPT_OUTPUT_DIR', 'outputs')
@@ -54,8 +54,8 @@ class CONFIG:
     ])
 
     DE_STRATEGY = 'rand1bin'
-    DE_POPSIZE = 200
-    DE_MAXITER = 500
+    DE_POPSIZE = int(os.environ.get('MAIZE_DE_POPSIZE', '200'))
+    DE_MAXITER = int(os.environ.get('MAIZE_DE_MAXITER', '500'))
     TOL_MAPPING = {'Yield': 0.001, 'Env': 0.01, 'Econ': 0.01}
 
     CEC = {'irrigation_power': 0.92, 'N_fertilizer': 1.53, 'P_fertilizer': 1.14, 'K_fertilizer': 0.66,
@@ -198,8 +198,8 @@ def process_chunk(chunk_id, subset_data, config_dict, baseline_stats, mode):
     random.seed(seed_val)
     try:
         predictor = YieldPredictorCPU(config_dict['MODEL_SAVE_DIRECTORY'])
-    except:
-        return []
+    except Exception as exc:
+        raise RuntimeError(f"Failed to load maize model from {config_dict['MODEL_SAVE_DIRECTORY']}") from exc
     results = []
 
     for idx, (original_idx, row) in enumerate(subset_data.iterrows()):
@@ -222,7 +222,8 @@ def process_chunk(chunk_id, subset_data, config_dict, baseline_stats, mode):
                                                                                         'HarvestDate'] else int(
                 np.round(v))
             results.append(row_res)
-        except:
+        except Exception as exc:
+            print(f"Warning: skipped row {original_idx} for mode {mode}: {exc}")
             continue
     return results
 
@@ -232,6 +233,11 @@ def fill_missing(df):
         if c not in df.columns: df[c] = 0.0
     if 'yield' in df.columns and 'Yield' not in df.columns: df.rename(columns={'yield': 'Yield'}, inplace=True)
     return df
+
+
+def split_dataframe(df, n_chunks):
+    index_chunks = np.array_split(np.arange(len(df)), max(int(n_chunks), 1))
+    return [df.iloc[idx].copy() for idx in index_chunks if len(idx) > 0]
 
 
 if __name__ == '__main__':
@@ -280,8 +286,7 @@ if __name__ == '__main__':
     }
 
     cfg = {k: v for k, v in vars(CONFIG).items() if not k.startswith('__')}
-    chunks = np.array_split(df_full, CONFIG.N_CORES * 4)
-    tasks = [(i, chunk, cfg, stats, mode) for i, chunk in enumerate(chunks) for mode in ['Yield', 'Env', 'Econ']]
+    chunks = split_dataframe(df_full, CONFIG.N_CORES * 4)
 
     for mode in ['Yield', 'Env', 'Econ']:
         print(f"\n : {mode}")

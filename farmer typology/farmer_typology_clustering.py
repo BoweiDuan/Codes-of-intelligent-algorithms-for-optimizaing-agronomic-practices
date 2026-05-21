@@ -18,8 +18,8 @@ Default inputs (override via environment variables)
 - Maize: data_demo/maize.xlsx  (MAIZE_CLUSTER_INPUT)
 
 Default model directories (override via environment variables)
-- Wheat FTT: saved_wheat_models_ftt (WHEAT_MODEL_DIR)
-- Maize XGB: saved_maize_models_xgb (MAIZE_MODEL_DIR)
+- Wheat FTT: models/saved_wheat_models_ftt (WHEAT_MODEL_DIR)
+- Maize XGB: models/saved_maize_models_xgb (MAIZE_MODEL_DIR)
 """
 
 from __future__ import annotations
@@ -53,8 +53,8 @@ class CONFIG:
     MAIZE_CLUSTER_INPUT = os.environ.get("MAIZE_CLUSTER_INPUT", "data_demo/maize.xlsx")
 
     # Model directories
-    WHEAT_MODEL_DIR = os.environ.get("WHEAT_MODEL_DIR", "saved_wheat_models_ftt")
-    MAIZE_MODEL_DIR = os.environ.get("MAIZE_MODEL_DIR", "saved_maize_models_xgb")
+    WHEAT_MODEL_DIR = os.environ.get("WHEAT_MODEL_DIR", "models/saved_wheat_models_ftt")
+    MAIZE_MODEL_DIR = os.environ.get("MAIZE_MODEL_DIR", "models/saved_maize_models_xgb")
 
     # Outputs
     OUT_DIR = os.environ.get("CLUSTER_OUT_DIR", "results/typology_clustering")
@@ -332,7 +332,7 @@ def compute_indices_maize(df: pd.DataFrame, y_pred: np.ndarray) -> pd.DataFrame:
         PRICE_WATER=0.072,
         COST_MACHINERY=151.06,
         COST_LABOR=73.09,
-        AVG_SEED_WEIGHT_GRAM=0.344,
+        AVG_SEED_WEIGHT_GRAM=344.0,
     )
 
     req = ["Density", "BasalN", "TopdressingN", "BasalP2O5", "TopdressingP2O5", "BasalK2O", "TopdressingK2O",
@@ -340,7 +340,7 @@ def compute_indices_maize(df: pd.DataFrame, y_pred: np.ndarray) -> pd.DataFrame:
     d = _ensure_required_columns(df, req)
 
     den = pd.to_numeric(d["Density"], errors="coerce").fillna(0.0).to_numpy()
-    sw = den * float(p.AVG_SEED_WEIGHT_GRAM) / 1000.0
+    sw = den * float(p.AVG_SEED_WEIGHT_GRAM) / 1000000.0
     N = (pd.to_numeric(d["BasalN"], errors="coerce").fillna(0.0) + pd.to_numeric(d["TopdressingN"], errors="coerce").fillna(0.0)).to_numpy()
     P = (pd.to_numeric(d["BasalP2O5"], errors="coerce").fillna(0.0) + pd.to_numeric(d["TopdressingP2O5"], errors="coerce").fillna(0.0)).to_numpy()
     K = (pd.to_numeric(d["BasalK2O"], errors="coerce").fillna(0.0) + pd.to_numeric(d["TopdressingK2O"], errors="coerce").fillna(0.0)).to_numpy()

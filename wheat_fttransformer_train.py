@@ -12,13 +12,13 @@ What this script does
 
 Data note
 - The original survey dataset is not included in this repository. Provide your own file with the same schema.
-- Default path: data/wheat_filtered.xlsx (override with DATA_DIR and WHEAT_FILE env vars).
+- Default path: data_demo/wheat.xlsx (override with DATA_DIR and WHEAT_FILE env vars).
 
 Outputs
-- saved_wheat_yield_models_tmppre_ftt/seed_<seed>/best_model.pt
-- saved_wheat_yield_models_tmppre_ftt/seed_<seed>/scaler_X.joblib
-- saved_wheat_yield_models_tmppre_ftt/seed_<seed>/scaler_y.joblib
-- saved_wheat_yield_models_tmppre_ftt/summary_metrics.csv
+- models/saved_wheat_models_ftt/seed_<seed>/best_model.pt
+- models/saved_wheat_models_ftt/seed_<seed>/scaler_X.joblib
+- models/saved_wheat_models_ftt/seed_<seed>/scaler_y.joblib
+- models/saved_wheat_models_ftt/summary_metrics.csv
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ BASE_SEED = 123
 N_SEEDS = 10
 N_FOLDS = 10
 
-SAVE_DIR = Path("saved_wheat_models_ftt")
+SAVE_DIR = Path("models/saved_wheat_models_ftt")
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "data_demo"))
 WHEAT_FILE = os.environ.get("WHEAT_FILE", "wheat.xlsx")

@@ -35,7 +35,7 @@ except RuntimeError:
 class CONFIG:
     SEED = 123
     NUM_GPUS = torch.cuda.device_count() if torch.cuda.is_available() else 0
-    MODEL_SAVE_DIRECTORY = os.environ.get('WHEAT_MODEL_DIR', 'saved_wheat_models_ftt')
+    MODEL_SAVE_DIRECTORY = os.environ.get('WHEAT_MODEL_DIR', 'models/saved_wheat_models_ftt')
     INPUT_EXCEL_PATH = os.environ.get('WHEAT_OPT_INPUT', 'data_demo/wheat.xlsx')
     OPTIMIZATION_RESULTS_DIRECTORY = os.environ.get('WHEAT_OPT_OUTDIR', 'results/wheat_multiobjective')
 
@@ -50,8 +50,8 @@ class CONFIG:
         (0, 227.7), (0, 303.6), (0, 104.016), (0.63828, 8.819272)
     ])
 
-    POP_SIZE = 92
-    N_GEN = 150
+    POP_SIZE = int(os.environ.get('WHEAT_NSGA_POP_SIZE', '92'))
+    N_GEN = int(os.environ.get('WHEAT_NSGA_N_GEN', '150'))
 
     CEC = {'irrigation_power': 0.92, 'N_fertilizer': 1.53, 'P_fertilizer': 1.14, 'K_fertilizer': 0.66,
            'pesticide': 6.58, 'seed': 1.16}
@@ -321,13 +321,19 @@ def fill_missing_columns_with_defaults(df):
     return df
 
 
+def split_dataframe(df, n_chunks):
+    index_chunks = np.array_split(np.arange(len(df)), max(int(n_chunks), 1))
+    return [df.iloc[idx].copy() for idx in index_chunks if len(idx) > 0]
+
+
 if __name__ == '__main__':
     np.random.seed(CONFIG.SEED)
     random.seed(CONFIG.SEED)
     torch.manual_seed(CONFIG.SEED)
     print(f"Wheat multi-objective optimization (three objectives) | Seed={CONFIG.SEED}")
 
-    if CONFIG.NUM_GPUS == 0: exit("GPU")
+    if CONFIG.NUM_GPUS == 0:
+        raise RuntimeError('No CUDA device detected. This wheat optimization script is GPU-only because it uses the FTTransformer/rtdl model.')
 
     df_full = pd.read_excel(CONFIG.INPUT_EXCEL_PATH)
     df_full = fill_missing_columns_with_defaults(df_full)
@@ -413,7 +419,7 @@ if __name__ == '__main__':
 
     print(f"\nProcessing {len(tasks)} ...")
 
-    chunks = np.array_split(df_full, CONFIG.NUM_GPUS)
+    chunks = split_dataframe(df_full, CONFIG.NUM_GPUS)
     procs = []
     q = mp.Queue()
 

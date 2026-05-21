@@ -29,9 +29,9 @@ warnings.filterwarnings("ignore")
 
 class CONFIG:
     SEED = 123
-    CPU_CORES = -1
+    CPU_CORES = int(os.environ.get("MAIZE_CPU_CORES", "-1"))
 
-    MODEL_SAVE_DIRECTORY = os.environ.get("MAIZE_MODEL_DIR", "saved_maize_models_xgb")
+    MODEL_SAVE_DIRECTORY = os.environ.get("MAIZE_MODEL_DIR", "models/saved_maize_models_xgb")
     INPUT_EXCEL_PATH = os.environ.get("MAIZE_OPT_INPUT", "data_demo/maize.xlsx")
     OPTIMIZATION_RESULTS_DIRECTORY = os.environ.get("MAIZE_OPT_OUTDIR", "results/maize_multiobjective")
 
@@ -70,8 +70,8 @@ class CONFIG:
         dtype=float,
     )
 
-    POP_SIZE = 92
-    N_GEN = 150
+    POP_SIZE = int(os.environ.get("MAIZE_NSGA_POP_SIZE", "92"))
+    N_GEN = int(os.environ.get("MAIZE_NSGA_N_GEN", "150"))
 
     CEC = {
         "irrigation_power": 0.92,
@@ -91,7 +91,7 @@ class CONFIG:
     }
 
     KWH_PER_M3_WATER = 1.0
-    AVG_SEED_WEIGHT_GRAM = 0.344
+    AVG_SEED_WEIGHT_GRAM = 344.0
 
     PRICES = {
         "maize_grain": 0.35,
@@ -187,7 +187,7 @@ class ObjectiveCalculator:
 
         v = self.decision_vars_map
         den = x[:, v["Density"]]
-        sw = den * CONFIG.AVG_SEED_WEIGHT_GRAM / 1000.0
+        sw = den * CONFIG.AVG_SEED_WEIGHT_GRAM / 1000000.0
         N = x[:, v["BasalN"]] + x[:, v["TopdressingN"]]
         P = x[:, v["BasalP2O5"]] + x[:, v["TopdressingP2O5"]]
         K = x[:, v["BasalK2O"]] + x[:, v["TopdressingK2O"]]
@@ -337,7 +337,7 @@ if __name__ == "__main__":
     yld = baseline_yld
 
     den = d["Density"]
-    sw = den * CONFIG.AVG_SEED_WEIGHT_GRAM / 1000.0
+    sw = den * CONFIG.AVG_SEED_WEIGHT_GRAM / 1000000.0
     N = d["BasalN"] + d["TopdressingN"]
     P = d["BasalP2O5"] + d["TopdressingP2O5"]
     K = d["BasalK2O"] + d["TopdressingK2O"]

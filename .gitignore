@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+outputs/
+results/
+saved_maize_models_xgb/
+saved_wheat_models_ftt/

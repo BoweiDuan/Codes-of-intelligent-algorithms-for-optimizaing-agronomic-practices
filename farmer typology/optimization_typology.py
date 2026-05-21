@@ -25,8 +25,8 @@ Inputs (defaults; override via environment variables)
 - results/maize_multiobjective/optimized_maize_multiobjective.csv
 
 Model artifacts (defaults; override via environment variables)
-- Wheat (FTTransformer): saved_wheat_models_ftt/{scaler_X.joblib, scaler_y.joblib, best_model.pt}
-- Maize (XGBoost):      saved_maize_models_xgb/{scaler_X.joblib, xgb_model.json}
+- Wheat (FTTransformer): models/saved_wheat_models_ftt
+- Maize (XGBoost):      models/saved_maize_models_xgb
 """
 
 from __future__ import annotations
@@ -62,8 +62,8 @@ class CONFIG:
         "results/maize_multiobjective/optimized_maize_multiobjective.csv",
     )
 
-    WHEAT_MODEL_DIR = os.environ.get("WHEAT_MODEL_DIR", "saved_wheat_models_ftt")
-    MAIZE_MODEL_DIR = os.environ.get("MAIZE_MODEL_DIR", "saved_maize_models_xgb")
+    WHEAT_MODEL_DIR = os.environ.get("WHEAT_MODEL_DIR", "models/saved_wheat_models_ftt")
+    MAIZE_MODEL_DIR = os.environ.get("MAIZE_MODEL_DIR", "models/saved_maize_models_xgb")
 
     OUT_DIR = os.environ.get("SANKEY_OUT_DIR", "results/figures")
 
@@ -114,14 +114,14 @@ class WheatYieldPredictor:
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         model_dir = Path(model_dir)
-        scaler_x_path = model_dir / "scaler_X.joblib"
-        scaler_y_path = model_dir / "scaler_y.joblib"
-        model_path = model_dir / "best_model.pt"
+        scaler_x_path = next((p for p in [model_dir / "scaler_X.joblib", model_dir / "scaler_X_for_ftt.joblib"] if p.exists()), None)
+        scaler_y_path = next((p for p in [model_dir / "scaler_y.joblib", model_dir / "scaler_y_for_ftt.joblib"] if p.exists()), None)
+        model_path = next((p for p in [model_dir / "best_model.pt", model_dir / "final_best_ftt_model.pt"] if p.exists()), None)
 
-        if not scaler_x_path.exists() or not scaler_y_path.exists() or not model_path.exists():
+        if scaler_x_path is None or scaler_y_path is None or model_path is None:
             raise FileNotFoundError(
                 f"Missing wheat model artifacts under {model_dir} "
-                f"(expected: scaler_X.joblib, scaler_y.joblib, best_model.pt)"
+                f"(expected current or legacy scaler/model filenames)"
             )
 
         self.scaler_x = joblib.load(scaler_x_path)
@@ -158,13 +158,13 @@ class MaizeYieldPredictor:
         import xgboost as xgb
 
         model_dir = Path(model_dir)
-        scaler_x_path = model_dir / "scaler_X.joblib"
-        model_path = model_dir / "xgb_model.json"
+        scaler_x_path = next((p for p in [model_dir / "scaler_X.joblib", model_dir / "scaler_for_xgb.joblib"] if p.exists()), None)
+        model_path = next((p for p in [model_dir / "xgb_model.json", model_dir / "manual_best_xgb_model.json"] if p.exists()), None)
 
-        if not scaler_x_path.exists() or not model_path.exists():
+        if scaler_x_path is None or model_path is None:
             raise FileNotFoundError(
                 f"Missing maize model artifacts under {model_dir} "
-                f"(expected: scaler_X.joblib, xgb_model.json)"
+                f"(expected current or legacy scaler/model filenames)"
             )
 
         self.scaler_x = joblib.load(scaler_x_path)
@@ -208,7 +208,7 @@ class MetricCalculator:
                 PRICES={"grain": 0.35, "N": 0.7, "P": 0.86, "K": 0.86, "pest": 24.74, "seed": 5.57, "water": 0.072},
                 COST_MACHINERY=151.06,
                 COST_LABOR=73.09,
-                AVG_SEED_WEIGHT_GRAM=0.344,
+                AVG_SEED_WEIGHT_GRAM=344.0,
             )
         if crop_name == "Wheat":
             return CropParams(
@@ -248,7 +248,7 @@ class MetricCalculator:
         df = _ensure_numeric(df, req)
 
         if crop_name == "Maize" and p.AVG_SEED_WEIGHT_GRAM is not None:
-            sw = df["Density"] * p.AVG_SEED_WEIGHT_GRAM / 1000.0
+            sw = df["Density"] * p.AVG_SEED_WEIGHT_GRAM / 1000000.0
         else:
             sw = df["Seed"]
 

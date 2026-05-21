@@ -12,12 +12,12 @@ What this script does
 
 Data note
 - The original survey dataset is not included in this repository. Provide your own file with the same schema.
-- Default path: data/maize_filtered.xlsx (override with DATA_DIR and MAIZE_FILE env vars).
+- Default path: data_demo/maize.xlsx (override with DATA_DIR and MAIZE_FILE env vars).
 
 Outputs
-- saved_maize_yield_models_tmppre_xgb/seed_<seed>/xgb_model.json
-- saved_maize_yield_models_tmppre_xgb/seed_<seed>/scaler_X.joblib
-- saved_maize_yield_models_tmppre_xgb/summary_metrics.csv
+- models/saved_maize_models_xgb/seed_<seed>/xgb_model.json
+- models/saved_maize_models_xgb/seed_<seed>/scaler_X.joblib
+- models/saved_maize_models_xgb/summary_metrics.csv
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ BASE_SEED = 123
 N_SEEDS = 10
 N_FOLDS = 10
 
-SAVE_DIR = Path("saved_maize_models_xgb")
+SAVE_DIR = Path("models/saved_maize_models_xgb")
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "data_demo"))
 MAIZE_FILE = os.environ.get("MAIZE_FILE", "maize.xlsx")

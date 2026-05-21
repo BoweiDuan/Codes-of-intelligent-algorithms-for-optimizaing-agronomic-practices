@@ -28,7 +28,7 @@ class CONFIG:
     SEED = 123
     NUM_GPUS = torch.cuda.device_count() if torch.cuda.is_available() else 0
 
-    MODEL_SAVE_DIRECTORY = os.environ.get('WHEAT_MODEL_DIR', 'saved_wheat_models_ftt')
+    MODEL_SAVE_DIRECTORY = os.environ.get('WHEAT_MODEL_DIR', 'models/saved_wheat_models_ftt')
     INPUT_EXCEL_PATH = os.environ.get('WHEAT_OPT_INPUT', 'data_demo/wheat.xlsx')
 
     OUTPUT_DIR = os.environ.get('WHEAT_OPT_OUTPUT_DIR', 'outputs')
@@ -61,8 +61,8 @@ class CONFIG:
     ]
 
     DE_STRATEGY = 'rand1bin'
-    DE_POPSIZE = 200
-    DE_MAXITER = 500
+    DE_POPSIZE = int(os.environ.get('WHEAT_DE_POPSIZE', '200'))
+    DE_MAXITER = int(os.environ.get('WHEAT_DE_MAXITER', '500'))
 
     TOL_MAPPING = {'Yield': 0.001, 'Env': 0.01, 'Econ': 0.01}
 
@@ -295,13 +295,19 @@ def fill_missing_columns_with_defaults(df):
     return df
 
 
+def split_dataframe(df, n_chunks):
+    index_chunks = np.array_split(np.arange(len(df)), max(int(n_chunks), 1))
+    return [df.iloc[idx].copy() for idx in index_chunks if len(idx) > 0]
+
+
 if __name__ == '__main__':
     np.random.seed(CONFIG.SEED)
     random.seed(CONFIG.SEED)
     torch.manual_seed(CONFIG.SEED)
     print(f"Wheat single-objective optimization | Seed={CONFIG.SEED}")
 
-    if CONFIG.NUM_GPUS == 0: raise RuntimeError('No CUDA device detected. Set CUDA properly or run on a machine with a GPU.')
+    if CONFIG.NUM_GPUS == 0:
+        raise RuntimeError('No CUDA device detected. This wheat optimization script is GPU-only because it uses the FTTransformer/rtdl model.')
 
     df_full = pd.read_excel(CONFIG.INPUT_EXCEL_PATH)
     df_full = fill_missing_columns_with_defaults(df_full)
@@ -347,7 +353,7 @@ if __name__ == '__main__':
 
     config_dict = {k: v for k, v in vars(CONFIG).items() if not k.startswith('__')}
 
-    chunks = np.array_split(df_full, CONFIG.NUM_GPUS)
+    chunks = split_dataframe(df_full, CONFIG.NUM_GPUS)
 
     for mode in ['Yield', 'Env', 'Econ']:
         print(f"\n : {mode}")
