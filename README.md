@@ -1,6 +1,6 @@
-# Codes of Intelligent Algorithms for Optimizing Agronomic Practices
+# AI-driven Customization of Agronomic Management to Improve Sustainability and Reshape Farmer Typologies in the North China Plain
 
-Code and trained model artifacts for farm-level sustainability diagnosis and multi-objective optimization in wheat-maize systems in the North China Plain.
+Code and trained model artifacts accompanying the paper **"AI-driven customization of agronomic management to improve sustainability and reshape farmer typologies in the North China Plain"**.
 
 ## Repository Contents
 
